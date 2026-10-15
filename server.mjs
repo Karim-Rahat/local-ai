@@ -10,6 +10,10 @@ await startLocalMySQL();
 const upstream = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
 const gemma = connectGemma(upstream);
 const files = {'/':['public/index.html','text/html'], '/app.js':['public/app.js','text/javascript'], '/style.css':['public/style.css','text/css'], '/sdk.mjs':['sdk.mjs','text/javascript']};
+files['/code-blocks.mjs']=['public/code-blocks.mjs','text/javascript'];
+files['/syntax.js']=['public/syntax.js','text/javascript'];
+files['/vendor/highlight/core.js']=['node_modules/@highlightjs/cdn-assets/es/core.min.js','text/javascript'];
+for(const language of ['powershell','javascript','python','bash','dos','json','xml','css','sql'])files[`/vendor/highlight/${language}.js`]=[`node_modules/@highlightjs/cdn-assets/es/languages/${language}.min.js`,'text/javascript'];
 http.createServer(async (req,res)=>{
   const url = new URL(req.url,'http://localhost');
   if (![`localhost:${port}`,`127.0.0.1:${port}`].includes(req.headers.host)) {res.writeHead(403).end();return;}
