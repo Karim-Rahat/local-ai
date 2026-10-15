@@ -34,6 +34,12 @@ Use a MySQL account with SELECT, INSERT, UPDATE, DELETE, and CREATE permissions 
 
 ## SDK
 
+### Chat deletion and assignment memory
+
+Use the trash icon next to a conversation or in the top bar to delete one chat. **Settings → Chat history → Delete all** is the only interface control for deleting all conversations, and requires confirmation. Deletion waits for queued saves and removes pinned memory linked to those chats. Deleted IDs are retained without message content to prevent old browser backups from restoring deleted chats.
+
+Open **Memory** in the sidebar to enable history recall and save assignment notes, requirements, or a rubric. Memory is off by default and stored in MySQL. The memory icon in the top bar pins a chat's user messages and enables memory. Relevant user messages from earlier conversations are included as bounded background context in subsequent requests; this does not train or modify the model. The composer shows the sources used for each response. **Forget all memory** removes pinned memories and notes and disables recall while keeping chat history. Deleting all chats keeps separately entered assignment notes. Unpinning a chat removes its pinned copy; history recall can still use the original conversation.
+
 ```js
 import { LocalAI } from './sdk.mjs';
 const ai = new LocalAI({ model: 'gemma3:1b' });

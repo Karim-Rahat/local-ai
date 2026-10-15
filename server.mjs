@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import http from 'node:http';
 import { handleChats } from './db.mjs';
+import { handleMemory } from './memory.mjs';
 import { startLocalMySQL } from './mysql-local.mjs';
 import { readFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
@@ -18,6 +19,7 @@ http.createServer(async (req,res)=>{
   const url = new URL(req.url,'http://localhost');
   if (![`localhost:${port}`,`127.0.0.1:${port}`].includes(req.headers.host)) {res.writeHead(403).end();return;}
   if (req.headers.origin && ![`http://localhost:${port}`,`http://127.0.0.1:${port}`].includes(req.headers.origin)) {res.writeHead(403).end();return;}
+  if(url.pathname==='/api/memory'||url.pathname.startsWith('/api/memory/')){await handleMemory(req,res,url.pathname);return;}
   if (url.pathname==='/api/conversations' || url.pathname.startsWith('/api/conversations/')) {
     await handleChats(req,res,url.pathname);
     return;

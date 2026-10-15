@@ -6,12 +6,13 @@
   <div class="brand"><span class="logo">✳</span><strong>Local Chat</strong><button id="close-sidebar" class="icon mobile" aria-label="Close sidebar">×</button></div>
   <button id="new-chat" class="nav"><span data-icon="compose"></span> New chat <kbd>Ctrl K</kbd></button>
   <button id="search" class="nav"><span data-icon="search"></span> Search chats</button>
-  <div class="history-label">Your chats</div><div id="history"></div>
+  <button id="memory-open" class="nav"><span data-icon="memory"></span> Memory <span id="memory-badge" class="memory-badge">Off</span></button>
+  <div class="history-heading"><div class="history-label">Your chats</div></div><div id="history"></div>
   <div class="sidebar-bottom"><div class="local-badge"><i></i> Runs on your computer</div><button id="settings" class="profile"><span class="avatar">Y</span><div><strong>Your workspace</strong><small>Local · No subscription</small></div><span data-icon="settings"></span></button></div>
 </aside>
 <div id="overlay"></div>
 <main>
-  <header><div class="header-left"><button id="menu" class="icon" aria-label="Toggle sidebar" title="Toggle sidebar"><span data-icon="sidebar"></span></button><label class="model-label"><select id="model" aria-label="AI model"><option>gemma3:1b</option></select><span class="model-tag">LOCAL</span></label></div><button id="export" class="subtle" aria-label="Export conversation"><span data-icon="export"></span><span class="export-label">Export chat</span></button></header>
+  <header><div class="header-left"><button id="menu" class="icon" aria-label="Toggle sidebar" title="Toggle sidebar"><span data-icon="sidebar"></span></button><label class="model-label"><select id="model" aria-label="AI model"><option>gemma3:1b</option></select><span class="model-tag">LOCAL</span></label></div><div class="chat-controls"><button id="remember-chat" class="icon" aria-label="Save this chat as memory" title="Save this chat as memory" disabled><span data-icon="memory"></span></button><button id="delete-chat" class="icon" aria-label="Delete this chat" title="Delete this chat" disabled><span data-icon="trash"></span></button><button id="export" class="subtle" aria-label="Export conversation"><span data-icon="export"></span><span class="export-label">Export chat</span></button></div></header>
   <div id="scroll">
     <section id="welcome"><div class="welcome-mark">✳</div><div class="welcome-eyebrow">A little space for big ideas</div><h1>What can I help with?</h1><p>Your ideas. Your AI. Your own machine.</p>
       <div class="suggestions">
@@ -25,6 +26,7 @@
   </div>
   <div class="composer-area">
     <div id="notice" role="status"></div>
+    <div id="memory-context" class="memory-context" hidden></div>
     <form id="composer">
       <label class="sr-only" for="prompt">Message Local Chat</label>
       <textarea id="prompt" placeholder="Ask anything" rows="1"></textarea>
@@ -42,6 +44,31 @@
     <div id="connection" role="status">Connecting to Ollama…</div><div id="copy-status" class="sr-only" role="status"></div>
   </div>
 </main>
-<dialog id="settings-dialog"><form method="dialog"><h2>Make it yours</h2><label>Appearance<select id="theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></label><label>System instructions<textarea id="system" rows="4" placeholder="How would you like your AI to respond?"></textarea></label><label>Creativity <output id="temp-label">0.7</output><input id="temperature" type="range" min="0" max="2" step="0.1" value="0.7"></label><p>Conversations save to MySQL with a browser backup. Messages go to your local Ollama server.</p><button class="save" value="save">Save preferences</button></form></dialog>
+<dialog id="settings-dialog" aria-labelledby="settings-title">
+  <div class="settings-heading"><div><div class="welcome-eyebrow">Your workspace, your way</div><h2 id="settings-title">Settings</h2></div><button id="settings-close" class="tool-button" aria-label="Close settings"><span data-icon="close"></span></button></div>
+  <div class="settings-tabs" role="tablist" aria-label="Settings sections"><button id="tab-general" role="tab" aria-selected="true" aria-controls="panel-general">General</button><button id="tab-memory" role="tab" aria-selected="false" aria-controls="panel-memory" tabindex="-1">Memory</button><button id="tab-data" role="tab" aria-selected="false" aria-controls="panel-data" tabindex="-1">Chat history</button></div>
+  <section id="panel-general" role="tabpanel" aria-labelledby="tab-general"><form method="dialog"><label>Appearance<select id="theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></label><label>System instructions<textarea id="system" rows="4" placeholder="How would you like your AI to respond?"></textarea></label><label>Creativity <output id="temp-label">0.7</output><input id="temperature" type="range" min="0" max="2" step="0.1" value="0.7"></label><p>Conversations save to MySQL with a browser backup. Messages go to your local Ollama server.</p><button class="save" value="save">Save preferences</button></form></section>
+  <section id="panel-memory" role="tabpanel" aria-labelledby="tab-memory" hidden>
+  <div class="memory-dialog-heading"><div><h3 id="memory-title">Your AI memory</h3></div></div>
+  <p>Let the AI use your assignment notes, saved memories, and relevant earlier chats. Memory stays in your local database.</p>
+  <label class="memory-switch"><span><strong>Use history as memory</strong><small>Include relevant context in new messages</small></span><input type="checkbox" id="memory-enabled" role="switch"></label>
+  <label for="memory-notes">Assignment notes <span class="optional">optional</span></label>
+  <textarea id="memory-notes" rows="5" maxlength="6000" placeholder="e.g. I am building a JavaScript assignment for my web development course. Use plain JS, explain each step, and follow the rubric…"></textarea>
+  <p class="memory-help">Keep your project requirements, preferred language, and rubric here. The AI uses a limited amount of relevant history; this does not train the model.</p>
+  <div class="memory-list-heading"><strong>Saved chats</strong><span id="memory-count">0</span></div>
+  <div id="memory-entries"></div>
+  <p class="memory-help">Use the memory icon above a conversation to pin its user messages. Deleting a chat also removes its saved memory.</p>
+  <div id="memory-feedback" role="status"></div>
+  <div class="memory-dialog-actions"><button id="forget-memory" class="danger-link">Forget all memory</button><button id="memory-save" class="save">Save memory settings</button></div>
+  </section>
+  <section id="panel-data" role="tabpanel" aria-labelledby="tab-data" hidden>
+    <h3>Manage your conversations</h3><p>Delete a conversation or clear your history. Chats and their pinned memories are removed from MySQL and this browser after you confirm.</p>
+    <div class="settings-action-row"><div><strong>Remember this chat</strong><small>Save the current assignment as memory</small></div><button id="settings-remember" class="subtle" type="button">Save as memory</button></div>
+    <div class="settings-action-row"><div><strong>Delete current chat</strong><small id="settings-current-chat">No conversation selected</small></div><button id="settings-delete-chat" class="subtle danger-text" type="button">Delete chat</button></div>
+    <div class="settings-action-row"><div><strong>Delete all chats</strong><small>Removes all chats and their pinned memories. Assignment notes are kept.</small></div><button id="settings-clear-all" class="subtle danger-text" type="button">Delete all</button></div>
+    <p class="memory-help">You can also delete any individual chat using its trash icon in the sidebar. To remove notes and turn memory off, use “Forget all memory” in the Memory tab.</p>
+    <div id="settings-data-feedback" role="status"></div>
+  </section>
+</dialog>
 <script type="module" src="/app.js"></script>
 </body></html>
